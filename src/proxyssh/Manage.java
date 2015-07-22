@@ -9,13 +9,13 @@ package ProxySSH;
  *
  * @author Milky_Way
  */
-
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
+
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -23,6 +23,9 @@ import java.awt.Insets;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -32,6 +35,8 @@ import javax.swing.JTextField;
 class Manage {
 
     public static Session session;
+    private static Channel myChannel;
+    private Object myParser;
 
     boolean startproxy(int localPort) {
         try {
@@ -46,72 +51,81 @@ class Manage {
 
     }
 
-    void connectLinux(String user, String remoteHost, int remotePort) {
-        try {
-            String cmd="cat Desktop/logcmd.txt\nps\nexit\n";
-           
-            JSch jsch = new JSch();
-            System.out.println(cmd);
-            session = jsch.getSession(user, remoteHost, remotePort);           
-            UserInfo ui = new MyUserInfo();            
-            session.setUserInfo(ui);            
-            
-            session.connect();
-            Channel channel = session.openChannel("shell");
-            System.out.println("1  "+cmd);
 
-            
+
+    void connectLinux(String user, String remoteHost, int remotePort) throws IOException {
+        try {
+            System.out.println("qua day");
+            JSch jsch = new JSch();
+            session = jsch.getSession(user, remoteHost, remotePort);
+            String cmd ="ls\nifconfig\n";
+            session.setHost(user);
+            session.setHost(remoteHost);
+            session.setPort(remotePort);
+            session.setPassword("123");
+
+            session.setConfig("StrictHostKeyChecking", "no");
+
+            System.out.println("Connected");
+            session.connect();
+            myChannel = session.openChannel("shell");
+//            
+////            InputStream in = null;
+////            myChannel.setInputStream(in);
+////            OutputStream out = null;
+////            myChannel.setOutputStream(out);
+
+
             PipedInputStream pipeIn = new PipedInputStream();
             PipedOutputStream pipeOut = new PipedOutputStream(pipeIn);
-            
-            //FileOutputStream fileOut = new FileOutputStream("./shell.txt");
-            ByteOutputStream fileOut =new ByteOutputStream();
-            
-            channel.setInputStream(pipeIn);
-            channel.setOutputStream(fileOut);
-            channel.connect();
+            myChannel.setInputStream(pipeIn);
             
             
+//            myChannel.setInputStream(System.in);
             
-            String str ="null";
-                    str= fileOut.toString();
-            System.out.println(str);
-            System.out.println("test");
-//            String result = out.toString();
-//           System.out.println(result);
+            PipedOutputStream pos = new PipedOutputStream();
+            PipedInputStream pis = new PipedInputStream(pos);
+            myChannel.setOutputStream(pos);
             
-//            InputStream inStream= new ByteArrayInputStream(cmd.getBytes());
-//            channel.setInputStream(inStream);
-//            
-//            ByteArrayOutputStream outStream =new ByteArrayOutputStream();
-//            System.out.println(outStream.toString());
-//            PrintStream ps =new PrintStream(outStream);
-//            channel.setOutputStream(ps);
+            myChannel.connect(1000);
+		
+            pipeOut.write(cmd.getBytes());
             
-            
-//            String result = outStream.toString();
-//            System.out.println(result);
-//            System.out.println("ket thuc");
-//            print.println(cmd);
-//            print.println("cat Desktop/logcmd.txt");
-//            print.println("exit");
-    //      channel.setInputStream(System.in);
-    //      channel.setOutputStream(System.out);
-            
-            
-      
+		BufferedReader br = new BufferedReader(new InputStreamReader(pis));
+	
+		while (true) {
+			
+			String line = br.readLine();
+			                 
+			if (line == null) {
+				break;
+			}
+                            
+                            System.out.println(line);
+			
+			JProxy.jTxtResult.setText(line);
+		}
+
+        } catch (JSchException ex) {
+            Logger.getLogger(Manage.class
+                    .getName()).log(Level.SEVERE, null, ex);
+
+        }
+
+    }
+    public boolean disconnectLinux() {
+        try {
+            if (session.isConnected() == true) {
+                myChannel.disconnect();
+                session.disconnect();
+                return true;
+            }
+            return true;
         } catch (Exception e) {
+            System.out.println("loi: " + e);
+            return false;
         }
-
     }
-
-    void disconnectLinux() {
-        if (session.isConnected()) {
-            session.disconnect();
-        }
-        return;
-    }
-
     public static class MyUserInfo implements UserInfo, UIKeyboardInteractive {
 
         public String getPassword() {

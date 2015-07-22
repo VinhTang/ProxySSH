@@ -1,0 +1,2 @@
+Last login: Tue Jul 21 16:18:39 2015 from 192.168.178.1
+[vinh@localhost ~]$ 
