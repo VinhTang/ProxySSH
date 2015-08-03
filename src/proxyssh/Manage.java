@@ -32,7 +32,7 @@ public class Manage extends Thread {
                 User.getUserinfo();
                 //client.setSoTimeout();                
                 System.out.println(client.getInetAddress().toString() + ":" + client.getPort() + " : " + client.getLocalAddress());
-
+                
             }
 
         } catch (IOException ex) {

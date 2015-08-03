@@ -14,11 +14,11 @@ import java.net.Socket;
  *
  * @author Milky_Way
  */
-public class Stream {
+public class Stream_client {
 
     Socket server;
 
-    public Stream(Socket s) {
+    public Stream_client(Socket s) {
         server = s;
     }
 

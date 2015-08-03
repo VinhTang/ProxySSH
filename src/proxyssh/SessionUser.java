@@ -9,7 +9,7 @@ public class SessionUser{
 
     
     public Socket client;
-    private Stream stream;
+    private Stream_client stream;
     public String OK = "!@#";
     public String False = ")(*"; //098
     public boolean flag_checkuser = false;
@@ -20,7 +20,7 @@ public class SessionUser{
     
     public SessionUser(Socket S) {
         this.client = S;
-        stream= new Stream(client);
+        stream= new Stream_client(client);
         System.out.println("session: "+ client.getInetAddress());
     }
 
@@ -53,16 +53,16 @@ public class SessionUser{
             Logger.getLogger(SessionUser.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    public void getUserinfo() {
+    public void getUserinfo() throws IOException, InterruptedException {
         do {
             do{
                 getInfo();
             }while(flag_checkuser==false);
             getHost();
             
-            System.out.println("get host: (tu ham session"+Host);
+            System.out.println("get host: (tu ham session)"+Host);
             Linux linux =new Linux(client,"192.168.10.102",22);
-            linux.start();
+            linux.setup();
             
         } while (flag_checkuser == false);
     }

@@ -10,6 +10,7 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,14 +18,12 @@ import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.Socket;
-import static proxyssh.test.myChannel;
-import static proxyssh.test.session;
 
 /**
  *
  * @author Milky_Way
  */
-public class Linux extends Thread {
+public class Linux {
 
     public static Session session = null;
     private static Channel myChannel;
@@ -54,11 +53,10 @@ public class Linux extends Thread {
     /*----------------------------------------------------------------------------*/
     // set SSH Connect
     private PipedInputStream pipeIn;
-    private PipedOutputStream pipeOut;
+    private static PipedOutputStream pipeOut;
+    public static InputStream in;
 
-    private InputStream in;
     /*----------------------------------------------------------------------------*/
-
     boolean connect(String remoteHost, int remotePort) {
         try {
 
@@ -86,6 +84,7 @@ public class Linux extends Thread {
 
                 //start channel
                 myChannel.connect();
+
                 return true;
             }
         } catch (JSchException | IOException e) {
@@ -95,66 +94,65 @@ public class Linux extends Thread {
     }
     /*----------------------------------------------------------------------------*/
 
-    public void run() {
+    public void setup() throws IOException, InterruptedException {
 
         if (connect(remoteHost, remotePort) == false) {
             System.out.println("Co loi o giai doan ket noi");
             return;
         } else {
             System.out.println("Xong buoc connect");
-            Stream str = new Stream(client);
-            System.out.println("test: " + client.getInetAddress().getHostName() + "--- " + remoteHost + "@" + remotePort);
 
-            int i = 0;
-            try {
-                while (true) {
-                    i++;
-                    System.out.println("-------------------------------");
-                    System.out.println("xong lan: " + i);
-                    System.out.println("-------------------------------");
+            Stream_client str_Client = new Stream_client(client);
 
-                    String cmd = str.Instream();
+            String cmd;
+
+            while (true) {
+                try {
+                    cmd = "";
+                    str_Client.Outstream(getIn(in));
+                    cmd = str_Client.Instream();
+                    cmd = cmd + "\n";
+                    System.out.println("Lenh cmd nhan duoc " + cmd + ".------");
                     Inputstream(cmd);
-                    //Inputstream(str.Instream());
 
-                    str.Outstream(getIn(in));
-
+                } catch (Exception e) {
                 }
 
-            } catch (Exception ex) {
-                System.out.println("Loi giao tiep : " + ex);
             }
         }
     }
     /*----------------------------------------------------------------------------*/
 
-    String getIn(InputStream in) throws IOException {
+    String getIn(InputStream ins) throws IOException, InterruptedException {
+
         String result = null;
+        String kq = null;
+
         byte[] tmp = new byte[1024];
-        int time = 0;
-        while (true) {
-            time++;
-            if (time  == 2) {
+
+        while (ins.available() > 0) {
+
+            int i = ins.read(tmp, 0, 1024);
+            if (i < 0) {
                 break;
             }
-            while (in.available() > 0) {
-                time = 0;
-                int i = in.read(tmp, 0, 1024);
-               
-                if (i < 0) {
-                    time = 0;
-                    break;
-                }
-                result = (new String(tmp, 0, i));
+            result = (new String(tmp, 0, i));
+
+            if (kq == null) {
+                kq = result;
+            } else {
+                kq = kq + result;
             }
         }
-        return result;
+
+        return kq;
+
     }
 
     void Inputstream(String cmd) throws IOException {
         pipeOut.write(cmd.getBytes());
     }
-    /*----------------------------------------------------------------------------*/
+    /*-------------------------------------------------------------------------*/
 
     boolean disconnectLinux() {
         if (session == null) {

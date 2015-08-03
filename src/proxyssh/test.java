@@ -28,21 +28,22 @@ public class test {
         byte[] tmp = new byte[1024];
         String result = null;
         int time = 0;
-        int i=0;
+
         while (true) {
-            
+
             while (ins.available() > 0) {
-                i = ins.read(tmp, 0, 1024);
-                System.out.println(i);
+                int i = ins.read(tmp, 0, 1024);
+
                 if (i < 0) {
+                    ins.close();
                     break;
                 }
                 result = (new String(tmp, 0, i));
                 System.out.println(result);
-                System.out.println(i);
 
             }
-        }
+      }
+        
     }
 
     public static void main(String[] args) throws IOException, JSchException {
