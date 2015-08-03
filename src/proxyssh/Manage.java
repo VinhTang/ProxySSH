@@ -5,7 +5,6 @@
  */
 package ProxySSH;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,57 +13,32 @@ import java.net.Socket;
  *
  * @author Milky_Way
  */
-
-
-public class Manage extends Thread{
-
-
+public class Manage extends Thread {
 
     private static ServerSocket Sock;
+    public static Socket client;
     
-    // set session connect to Linux Server
     public void run() {
         try {
+            
             Sock = new ServerSocket(JProxy.localPort);
-            JProxy.flag=true;
-            while (true) {
-                //luong ket noi tu client den server  
-                Socket client = Sock.accept();
-                client.setSoTimeout(10000);
-                
-                boolean check=false;
-                System.out.println(client.getInetAddress().toString()+":"+client.getPort());
-                do {
-                    //nhan username password 
-                    DataInputStream instream = new DataInputStream(client.getInputStream());
-                    String inf = instream.readUTF();
-                    String user = inf.substring(0, inf.indexOf("@"));
-                    String password = inf.substring(inf.indexOf("@") + 2);
-                    System.out.println(user + " == " + password);
+            JProxy.flag_start = true;
+            String receive;
 
-                    // kiem tra pass word 
-                    check = checkuser(user, password);
-                    
-                } while (check == false);
-                
-                proxyssh.InStream in = new proxyssh.InStream(client);
-                proxyssh.OutStream out = new proxyssh.OutStream(client);
-                in.start();
-                out.start();
+            //luong ket noi tu client den server
+            while (true) {
+                client = Sock.accept();
+                proxyssh.SessionUser User =new proxyssh.SessionUser(client);
+                User.getUserinfo();
+                //client.setSoTimeout();                
+                System.out.println(client.getInetAddress().toString() + ":" + client.getPort() + " : " + client.getLocalAddress());
+
             }
 
         } catch (IOException ex) {
-            System.out.println(ex);
+            System.out.println("Loi start proxy: "+ex);
         }
-
     }
 
-    // kiem tra LDAP
-    private boolean checkuser(String user, String password) {
-        System.out.println(" Lay dc useraname va password: "+user +" & "+password);
-        return true;
-    }
-    
+
 }
-
-
