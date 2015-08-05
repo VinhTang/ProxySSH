@@ -105,16 +105,20 @@ public class Linux {
             Stream_client str_Client = new Stream_client(client);
 
             String cmd;
-
+            String reply=null;
             while (true) {
                 try {
-                    cmd = "";
-                    str_Client.Outstream(getIn(in));
+                    reply="";
+                    while(reply.equals("")==true) reply=getIn(in);
+                    
+                    
+                    str_Client.Outstream(reply);
                     cmd = str_Client.Instream();
                     cmd = cmd + "\n";
                     System.out.println("Lenh cmd nhan duoc " + cmd + ".------");
+                    
                     Inputstream(cmd);
-
+                    cmd = "";
                 } catch (Exception e) {
                 }
 
@@ -144,7 +148,7 @@ public class Linux {
                 kq = kq + result;
             }
         }
-
+        
         return kq;
 
     }
